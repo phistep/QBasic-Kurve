@@ -10,7 +10,7 @@ DIM deltax AS DOUBLE
 DIM deltay AS DOUBLE
 
 ' setting vars to zero
-pixelcount = 0
+linelength = 0
 gapcount = 0
 deltax = 0
 deltay = 0
@@ -26,16 +26,17 @@ CONST FIELDOFFSETY = 80
 CONST FIELDOFFSETX = 20
 CONST FIELDWIDTH = 500
 CONST FIELDHEIGHT = 350
-CONST FIELDCOLOR = 8
+CONST FIELDCOLOR = 0
 CONST FIELDLINECOLOR = 15 ' must differ form FIELDCOLOR
 
 ' tunables
 CONST ANGLEMODIFIER = 3
-CONST LINECOLOR = 15 ' must differ from FIELDCOLOR
+CONST LINECOLOR = 10 ' must differ from FIELDCOLOR
 CONST PXDISTMODIFIER = 1
 CONST GAPLENGTH = 10
 CONST GAPCHANCE = 20 ' * 1 / 10000
-             
+CONST LINEWIDTH = 2 ' * 2         
+
 ' keys
 CONST rightKey$ = "d"
 CONST leftKey$ = "a"
@@ -70,12 +71,17 @@ DO
                 IF POINT(posx + deltax, posy + deltay) <> FIELDCOLOR THEN
                         userKey$ = QUITKEY$
                 ELSE
-                        PSET (posx, posy), LINECOLOR
-                        pixelcount = pixelcount + 1
+                        ' still bugs with collision detection when CIRCLE is used
+                        ' the collision will just be detected with the CIRECLE center
+
+                        'PSET (posx, posy), LINECOLOR
+                        CIRCLE (posx - deltax * LINEWIDTH, posy - deltay * LINEWIDTH), LINEWIDTH, LINECOLOR
                 END IF
         ELSE
                 gapcountdown = gapcountdown - 1
         END IF
+
+        linelength = linelength + 1
 
         SLEEP 1
 LOOP UNTIL userKey$ = QUITKEY$
@@ -87,7 +93,7 @@ PRINT "angle      "; angle
 PRINT "posx       "; posx
 PRINT "posy       "; posy
 PRINT "color      "; POINT(posx + deltax, posy + deltay)
-PRINT "pixelcount "; pixelcount
+PRINT "linelength "; linelength
 PRINT "gapcount   "; gapcount
 
 SLEEP

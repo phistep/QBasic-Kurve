@@ -22,43 +22,43 @@ posy = 300
 angle = 180
 
 ' tunables
-anglemodifier = 3
-linecolor = 15
-pxdistmodifier = 1
-gaplength = 10
-gapchance = 20 ' * 1 /10000
+CONST ANGLEMODIFIER = 3
+CONST LINECOLOR = 15
+CONST PXDISTMODIFIER = 1
+CONST GAPLENGTH = 10
+CONST GAPCHANCE = 20 ' * 1 / 10000
              
 ' keys
-rightKey$ = "d"
-leftKey$ = "a"
-quitKey$ = "q"
+CONST RIGHTKEY$ = "d"
+CONST LEFTKEY$ = "a"
+CONST QUITKEY$ = "q"
 
 PRINT "ACHTUNG, DIE BASIC KURVE!"
-PRINT "Left:  "; leftKey$
-PRINT "Right: "; rightKey$
-PRINT "Quit:  "; quitKey$
+PRINT "Left:  "; LEFTKEY$
+PRINT "Right: "; RIGHTKEY$
+PRINT "Quit:  "; QUITKEY$
 
 DO
         userKey$ = INKEY$
-        IF userKey$ = leftKey$ THEN angle = (angle - anglemodifier) MOD 360
-        IF userKey$ = rightKey$ THEN angle = (angle + anglemodifier) MOD 360
+        IF userKey$ = leftKey$ THEN angle = (angle - ANGLEMODIFIER) MOD 360
+        IF userKey$ = rightKey$ THEN angle = (angle + ANGLEMODIFIER) MOD 360
 
-        deltax = COS(toRad(angle)) * pxdistmodifier
-        deltay = SIN(toRad(angle)) * pxdistmodifier
+        deltax = COS(toRad(angle)) * PXDISTMODIFIER
+        deltay = SIN(toRad(angle)) * PXDISTMODIFIER
       
         posx = posx + deltax
         posy = posy + deltay
 
-        IF (RND * 10000) + 1 <= gapchance THEN
-                gapcountdown = gaplength
+        IF (RND * 10000) + 1 <= GAPCHANCE THEN
+                gapcountdown = GAPLENGTH
                 gapcount = gapcount + 1
         END IF
        
         IF gapcountdown = 0 THEN
                 IF POINT(posx + deltax, posy + deltay) > 0 THEN
-                        userKey$ = quitKey$
+                        userKey$ = QUITKEY$
                 ELSE
-                        PSET (posx, posy), linecolor
+                        PSET (posx, posy), LINECOLOR
                         pixelcount = pixelcount + 1
                 END IF
         ELSE
@@ -66,7 +66,7 @@ DO
         END IF
 
         SLEEP 1
-LOOP UNTIL userKey$ = quitKey$
+LOOP UNTIL userKey$ = QUITKEY$
 
 ' debug info
 PRINT

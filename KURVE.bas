@@ -21,22 +21,34 @@ posx = 300
 posy = 300
 angle = 180
 
+' gamefield
+CONST FIELDOFFSETY = 80
+CONST FIELDOFFSETX = 20
+CONST FIELDWIDTH = 500
+CONST FIELDHEIGHT = 350
+CONST FIELDCOLOR = 8
+CONST FIELDLINECOLOR = 15 ' must differ form FIELDCOLOR
+
 ' tunables
 CONST ANGLEMODIFIER = 3
-CONST LINECOLOR = 15
+CONST LINECOLOR = 15 ' must differ from FIELDCOLOR
 CONST PXDISTMODIFIER = 1
 CONST GAPLENGTH = 10
 CONST GAPCHANCE = 20 ' * 1 / 10000
              
 ' keys
-CONST RIGHTKEY$ = "d"
-CONST LEFTKEY$ = "a"
+CONST rightKey$ = "d"
+CONST leftKey$ = "a"
 CONST QUITKEY$ = "q"
 
 PRINT "ACHTUNG, DIE BASIC KURVE!"
-PRINT "Left:  "; LEFTKEY$
-PRINT "Right: "; RIGHTKEY$
+PRINT "Left:  "; leftKey$
+PRINT "Right: "; rightKey$
 PRINT "Quit:  "; QUITKEY$
+
+LINE (FIELDOFFSETX, FIELDOFFSETY)-(FIELDOFFSETX + FIELDWIDTH, FIELDOFFSETY + FIELDHEIGHT), FIELDLINECOLOR, B
+PAINT (FIELDOFFSETX + 1, FIELDOFFSETY + 1), FIELDCOLOR, FIELDLINECOLOR
+
 
 DO
         userKey$ = INKEY$
@@ -55,7 +67,7 @@ DO
         END IF
        
         IF gapcountdown = 0 THEN
-                IF POINT(posx + deltax, posy + deltay) > 0 THEN
+                IF POINT(posx + deltax, posy + deltay) <> FIELDCOLOR THEN
                         userKey$ = QUITKEY$
                 ELSE
                         PSET (posx, posy), LINECOLOR

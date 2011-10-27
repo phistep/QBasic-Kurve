@@ -1,3 +1,4 @@
+DECLARE SUB delay (duration!)
 DECLARE FUNCTION toRad! (degrees!)
 RANDOMIZE TIMER
 SCREEN 12
@@ -30,12 +31,13 @@ CONST FIELDCOLOR = 0
 CONST FIELDLINECOLOR = 15 ' must differ form FIELDCOLOR
 
 ' tunables
-CONST ANGLEMODIFIER = 3
+CONST ANGLEMODIFIER = 5
 CONST LINECOLOR = 10 ' must differ from FIELDCOLOR
 CONST PXDISTMODIFIER = 1
-CONST GAPLENGTH = 10
+CONST GAPLENGTH = 20
 CONST GAPCHANCE = 20 ' * 1 / 10000
-CONST LINEWIDTH = 2 ' * 2         
+CONST LINEWIDTH = 2 ' * 2        
+CONST FRAMEDELAY = .04  ' float, in seconds, min is 0.04
 
 ' keys
 CONST rightKey$ = "d"
@@ -83,7 +85,7 @@ DO
 
         linelength = linelength + 1
 
-        SLEEP 1
+        delay (FRAMEDELAY)
 LOOP UNTIL userKey$ = QUITKEY$
 
 ' debug info
@@ -98,6 +100,14 @@ PRINT "gapcount   "; gapcount
 
 SLEEP
 END
+
+SUB delay (duration!)
+        ' from www.techiwarehouse.com/cat/17/BASIC-Programming
+        CONST TICKS = 86400
+        tim = TIMER
+        DO
+        LOOP UNTIL (TIMER - tim + TICKS) - (INT((TIMER - tim + TICKS) / TICKS) * TICKS) > duration
+END SUB
 
 FUNCTION toRad (degrees)
 toRad = (degrees / 180) * ATN(1) * 4

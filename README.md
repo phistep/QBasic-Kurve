@@ -11,4 +11,5 @@ Would not be possible without:
 
 * Eric Carr with his inline assambly multi-key input routine (taken from [here](http://tek-tips.com/faqs.cfm?fid=4193))
 * The Thech iWarehouse with it's timing function (taken from [here](www.techiwarehouse.com/cat/17/BASIC-Programming))
+* The keycode table by nightcode ([here](http://www.angelfire.com/scifi/nightcode/prglang/qbasic/function/devices/keyboard_scan_codes.html))
 

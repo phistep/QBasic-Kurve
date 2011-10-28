@@ -26,7 +26,7 @@ CONST ANGLEMODIFIER = 3
 CONST PXDISTMODIFIER = 1
 CONST GAPLENGTH = 20
 CONST GAPCHANCE = 20 ' * 1 / 10000
-CONST LINEWIDTH = 2 ' * 2    
+CONST LINEWIDTH = 2 ' * 2   
 CONST FRAMEDELAY = .04  ' float, in seconds, min is 0.04
 CONST NOSPAWNZONE = 75
 
@@ -66,7 +66,6 @@ keycodelist(6, 2) = 48 'B
 playercount = 2
 DIM player(playercount) AS plyr
 
-
 ' application loop
 DO
 	CLS
@@ -83,8 +82,16 @@ DO
        
 	COLOR 15
 	LOCATE 19, 33: PRINT "Press [2] - [6]"
-	LOCATE 23, 33: PRINT "[SPACE] to start"
+	LOCATE 22, 33: PRINT "[SPACE] to start"
 	LOCATE 28, 34: PRINT "[ESC] to quit"
+
+	IF winner <> 0 THEN
+		COLOR wincolor
+		LOCATE 24, 30: PRINT "ษอออออออออออออออออออออป"
+		LOCATE 25, 30: PRINT "บ WINNER: PLAYER "; winner; "! บ"
+		LOCATE 26, 30: PRINT "ศอออออออออออออออออออออผ"
+		COLOR 15
+	END IF
 
 	DO
 		inp$ = INKEY$
@@ -102,8 +109,9 @@ DO
 
 	' prepare game
 	REDIM player(playercount) AS plyr
-	gameend = 0
-      
+	winner = 0
+	wincolor = 15
+
 	' the round loop
 	DO
 		LOCATE 1, 4: PRINT "Press [SPACE] to continue"
@@ -172,7 +180,10 @@ T:
 						      activeplayers = activeplayers - 1
 						      FOR k = 1 TO playercount
 								IF player(k).active THEN player(k).points = player(k).points + 1
-								IF player(k).points = (playercount - 1) * 10 THEN gameend = 1
+								IF player(k).points = (playercount - 1) * 10 THEN
+									winner = k
+									wincolor = player(k).linecolor
+								END IF
 						      NEXT
 						      scoreupdate = 1
 						ELSE
@@ -203,8 +214,8 @@ T:
 
 
 			delay (FRAMEDELAY)
-		LOOP UNTIL KS(1) = 1 OR activeplayers = 1 OR gameend = 1'end game loop
-	LOOP UNTIL KS(1) = 1 OR gameend = 1'end round loop
+		LOOP UNTIL KS(1) = 1 OR activeplayers = 1 OR winner <> 0 'end game loop
+	LOOP UNTIL KS(1) = 1 OR winner <> 0 'end round loop
 	KS(1) = 0
 
 LOOP UNTIL 1 = 0 'end application loop

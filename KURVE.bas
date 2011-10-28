@@ -72,7 +72,12 @@ DIM player(playercount) AS plyr
 
 ' the round loop
 DO
+	LOCATE 1, 4: PRINT "Press [SPACE] to continue"
+	DO
+		inp$ = INKEY$
+	LOOP UNTIL inp$ = " "
 	CLS
+	LOCATE 1, 4: PRINT "Press [ESC] to quit"
 
 	' reset and randomize player values
 	activeplayers = playercount
@@ -100,16 +105,6 @@ DO
 
 	' the game loop
 	DO
-		IF scoreupdate = 1 THEN
-			FOR k = 1 TO playercount
-				LOCATE 2 * k + 2, 66
-				COLOR player(k).linecolor
-				PRINT "Player"; k; ":"; player(k).points; " "
-				COLOR 15
-			NEXT
-			scoreupdate = 0
-		END IF
-
 
 		'Eric Carr's multi-key routine
 		'http://tek-tips.com/faqs.cfm?fid=4193
@@ -159,6 +154,17 @@ T:
 			END IF
 			IF activeplayers = 0 THEN EXIT FOR
 		NEXT
+
+		IF scoreupdate = 1 THEN
+			FOR k = 1 TO playercount
+				LOCATE 2 * k + 2, 66
+				COLOR player(k).linecolor
+				PRINT "Player"; k; ":"; player(k).points; " "
+				COLOR 15
+			NEXT
+			scoreupdate = 0
+		END IF
+
 
 		delay (FRAMEDELAY)
 	LOOP UNTIL KS(1) = 1 OR activeplayers = 1 OR gameend = 1'end game loop

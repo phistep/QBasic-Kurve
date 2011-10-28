@@ -62,114 +62,152 @@ keycodelist(5, 2) = 37 'K
 keycodelist(6, 1) = 47 'V
 keycodelist(6, 2) = 48 'B
 
-' playeroptions
-playercount = 2 ' up to six
-
-'set variables
-scoreupdate = 1
-gameend = 0
+' default
+playercount = 2
 DIM player(playercount) AS plyr
 
-' the round loop
+
+' application loop
 DO
-	LOCATE 1, 4: PRINT "Press [SPACE] to continue"
+	CLS
+	LOCATE 1, 27: PRINT "ษอออออออออออออออออออออออออออป"
+	LOCATE 2, 27: PRINT "บ Achtung, die Basic Kurve! บ"
+	LOCATE 3, 27: PRINT "ศอออออออออออออออออออออออออออผ"
+
+	LOCATE 5, 32: COLOR 9: PRINT "Player 1: ฎ Q  W ฏ"
+	LOCATE 7, 32: COLOR 10: PRINT "Player 2: ฎ T  Y ฏ"
+	LOCATE 9, 32: COLOR 11: PRINT "Player 3: ฎ O  P ฏ"
+	LOCATE 11, 32: COLOR 12: PRINT "Player 4: ฎ S  D ฏ"
+	LOCATE 13, 32: COLOR 13: PRINT "Player 5: ฎ J  K ฏ"
+	LOCATE 15, 32: COLOR 14: PRINT "Player 5: ฎ V  B ฏ"
+       
+	COLOR 15
+	LOCATE 19, 33: PRINT "Press [2] - [6]"
+	LOCATE 23, 33: PRINT "[SPACE] to start"
+	LOCATE 28, 34: PRINT "[ESC] to quit"
+
 	DO
 		inp$ = INKEY$
-	LOOP UNTIL inp$ = " "
+		SELECT CASE inp$
+			CASE "2": playercount = 2
+			CASE "3": playercount = 3
+			CASE "4": playercount = 4
+			CASE "5": playercount = 5
+			CASE "6": playercount = 6
+		END SELECT
+		LOCATE 18, 31: PRINT "Number of Players:"; playercount
+	LOOP UNTIL playercount <> 0 AND (inp$ = " " OR inp$ = CHR$(27))
+	IF inp$ = CHR$(27) THEN EXIT DO
 	CLS
-	LOCATE 1, 4: PRINT "Press [ESC] to quit"
 
-	' reset and randomize player values
-	activeplayers = playercount
-       
-	FOR i = 1 TO playercount
-		player(i).deltax = 0
-		player(i).deltay = 0
-		player(i).gapcount = 0
-		player(i).gapcountdown = 0
-		player(i).linelength = 0
-       
-		player(i).active = 1
-		player(i).linecolor = i + 8
-		player(i).leftkeycode = keycodelist(i, 1)
-		player(i).rightkeycode = keycodelist(i, 2)
-
-		player(i).angle = (RND * 360) + 1
-		player(i).posx = (RND * (FIELDWIDTH - 2 * NOSPAWNZONE)) + FIELDOFFSETX + NOSPAWNZONE
-		player(i).posy = (RND * (FIELDHEIGHT - 2 * NOSPAWNZONE)) + FIELDOFFSETY + NOSPAWNZONE
-	NEXT
-
-	' draw gamefield
-	LINE (FIELDOFFSETX, FIELDOFFSETY)-(FIELDOFFSETX + FIELDWIDTH, FIELDOFFSETY + FIELDHEIGHT), FIELDLINECOLOR, B
-	PAINT (FIELDOFFSETX + 1, FIELDOFFSETY + 1), FIELDCOLOR, FIELDLINECOLOR
-
-	' the game loop
+	' prepare game
+	REDIM player(playercount) AS plyr
+	gameend = 0
+      
+	' the round loop
 	DO
-
-		'Eric Carr's multi-key routine
-		'http://tek-tips.com/faqs.cfm?fid=4193
-T:
-		j$ = INKEY$
-		j = INP(&H60)
-		OUT &H61, INP(&H61) OR &H61: OUT &H61, &H20
-		KS(SC(j)) = DU(j)
-
-		FOR i = 1 TO playercount
-			IF player(i).active = 1 THEN
-				IF KS(player(i).leftkeycode) = 1 THEN player(i).angle = (player(i).angle - ANGLEMODIFIER) MOD 360
-				IF KS(player(i).rightkeycode) = 1 THEN player(i).angle = (player(i).angle + ANGLEMODIFIER) MOD 360
-		
-				player(i).deltax = COS(toRad(player(i).angle)) * PXDISTMODIFIER
-				player(i).deltay = SIN(toRad(player(i).angle)) * PXDISTMODIFIER
-			
-				player(i).posx = player(i).posx + player(i).deltax
-				player(i).posy = player(i).posy + player(i).deltay
-
-				IF (RND * 10000) + 1 <= GAPCHANCE THEN
-					player(i).gapcountdown = GAPLENGTH
-					player(i).gapcount = player(i).gapcount + 1
-				END IF
+		LOCATE 1, 4: PRINT "Press [SPACE] to continue"
+		DO
+			inp$ = INKEY$
+		LOOP UNTIL inp$ = " " OR inp$ = CHR$(27)
+		IF inp$ = CHR$(27) THEN EXIT DO
+		CLS
        
-				IF player(i).gapcountdown = 0 THEN
-					IF POINT(player(i).posx + player(i).deltax, player(i).posy + player(i).deltay) <> FIELDCOLOR THEN
-					      player(i).active = 0
-					      activeplayers = activeplayers - 1
-					      FOR k = 1 TO playercount
-							IF player(k).active THEN player(k).points = player(k).points + 1
-							IF player(k).points = (playercount - 1) * 10 THEN gameend = 1
-					      NEXT
-					      scoreupdate = 1
-					ELSE
-					      ' still bugs with collision detection when CIRCLE is used
-					      ' the collision will just be detected with the CIRECLE center
+		LOCATE 1, 4: PRINT "Press [ESC] to quit"
 
-					      'PSET (player(i).posx, player(i).posy), player(i).linecolor
-					      CIRCLE (player(i).posx - player(i).deltax * LINEWIDTH, player(i).posy - player(i).deltay * LINEWIDTH), LINEWIDTH, player(i).linecolor
-					END IF
-				ELSE
-					player(i).gapcountdown = player(i).gapcountdown - 1
-				END IF
+		' reset and randomize player values
+		activeplayers = playercount
+		scoreupdate = 1
+		FOR i = 1 TO playercount
+			player(i).deltax = 0
+			player(i).deltay = 0
+			player(i).gapcount = 0
+			player(i).gapcountdown = 0
+			player(i).linelength = 0
+       
+			player(i).active = 1
+			player(i).linecolor = i + 8
+			player(i).leftkeycode = keycodelist(i, 1)
+			player(i).rightkeycode = keycodelist(i, 2)
 
-				player(i).linelength = player(i).linelength + 1
-			END IF
-			IF activeplayers = 0 THEN EXIT FOR
+			player(i).angle = (RND * 360) + 1
+			player(i).posx = (RND * (FIELDWIDTH - 2 * NOSPAWNZONE)) + FIELDOFFSETX + NOSPAWNZONE
+			player(i).posy = (RND * (FIELDHEIGHT - 2 * NOSPAWNZONE)) + FIELDOFFSETY + NOSPAWNZONE
 		NEXT
 
-		IF scoreupdate = 1 THEN
-			FOR k = 1 TO playercount
-				LOCATE 2 * k + 2, 66
-				COLOR player(k).linecolor
-				PRINT "Player"; k; ":"; player(k).points; " "
-				COLOR 15
+		' draw gamefield
+		LINE (FIELDOFFSETX, FIELDOFFSETY)-(FIELDOFFSETX + FIELDWIDTH, FIELDOFFSETY + FIELDHEIGHT), FIELDLINECOLOR, B
+		PAINT (FIELDOFFSETX + 1, FIELDOFFSETY + 1), FIELDCOLOR, FIELDLINECOLOR
+
+		' the game loop
+		DO
+
+			'Eric Carr's multi-key routine
+			'http://tek-tips.com/faqs.cfm?fid=4193
+T:
+			j$ = INKEY$
+			j = INP(&H60)
+			OUT &H61, INP(&H61) OR &H61: OUT &H61, &H20
+			KS(SC(j)) = DU(j)
+
+			FOR i = 1 TO playercount
+				IF player(i).active = 1 THEN
+					IF KS(player(i).leftkeycode) = 1 THEN player(i).angle = (player(i).angle - ANGLEMODIFIER) MOD 360
+					IF KS(player(i).rightkeycode) = 1 THEN player(i).angle = (player(i).angle + ANGLEMODIFIER) MOD 360
+		
+					player(i).deltax = COS(toRad(player(i).angle)) * PXDISTMODIFIER
+					player(i).deltay = SIN(toRad(player(i).angle)) * PXDISTMODIFIER
+			
+					player(i).posx = player(i).posx + player(i).deltax
+					player(i).posy = player(i).posy + player(i).deltay
+
+					IF (RND * 10000) + 1 <= GAPCHANCE THEN
+						player(i).gapcountdown = GAPLENGTH
+						player(i).gapcount = player(i).gapcount + 1
+					END IF
+       
+					IF player(i).gapcountdown = 0 THEN
+						IF POINT(player(i).posx + player(i).deltax, player(i).posy + player(i).deltay) <> FIELDCOLOR THEN
+						      player(i).active = 0
+						      activeplayers = activeplayers - 1
+						      FOR k = 1 TO playercount
+								IF player(k).active THEN player(k).points = player(k).points + 1
+								IF player(k).points = (playercount - 1) * 10 THEN gameend = 1
+						      NEXT
+						      scoreupdate = 1
+						ELSE
+						      ' still bugs with collision detection when CIRCLE is used
+						      ' the collision will just be detected with the CIRECLE center
+
+						      'PSET (player(i).posx, player(i).posy), player(i).linecolor
+						      CIRCLE (player(i).posx - player(i).deltax * LINEWIDTH, player(i).posy - player(i).deltay * LINEWIDTH), LINEWIDTH, player(i).linecolor
+						END IF
+					ELSE
+						player(i).gapcountdown = player(i).gapcountdown - 1
+					END IF
+
+					player(i).linelength = player(i).linelength + 1
+				END IF
+				IF activeplayers = 0 THEN EXIT FOR
 			NEXT
-			scoreupdate = 0
-		END IF
+
+			IF scoreupdate = 1 THEN
+				FOR k = 1 TO playercount
+					LOCATE 2 * k + 2, 66
+					COLOR player(k).linecolor
+					PRINT "Player"; k; ":"; player(k).points; " "
+					COLOR 15
+				NEXT
+				scoreupdate = 0
+			END IF
 
 
-		delay (FRAMEDELAY)
-	LOOP UNTIL KS(1) = 1 OR activeplayers = 1 OR gameend = 1'end game loop
-LOOP UNTIL KS(1) OR gameend = 1'end round loop
+			delay (FRAMEDELAY)
+		LOOP UNTIL KS(1) = 1 OR activeplayers = 1 OR gameend = 1'end game loop
+	LOOP UNTIL KS(1) = 1 OR gameend = 1'end round loop
+	KS(1) = 0
 
+LOOP UNTIL 1 = 0 'end application loop
 END
 
 SUB delay (duration!)

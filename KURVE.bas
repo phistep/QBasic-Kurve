@@ -16,7 +16,7 @@ NEXT
 ' gamefield
 CONST FIELDOFFSETY = 20
 CONST FIELDOFFSETX = 20
-CONST FIELDWIDTH = 500
+CONST FIELDWIDTH = 480
 CONST FIELDHEIGHT = 440
 CONST FIELDCOLOR = 0
 CONST FIELDLINECOLOR = 15 ' must differ from FIELDCOLOR
@@ -62,24 +62,27 @@ keycodelist(5, 2) = 37 'K
 keycodelist(6, 1) = 47 'V
 keycodelist(6, 2) = 48 'B
 
+' playeroptions
 playercount = 2 ' up to six
-roundcount = 2
-activeplayers = playercount
 
+'set variables
+scoreupdate = 1
+gameend = 0
 DIM player(playercount) AS plyr
 
 ' the round loop
-FOR roundcounter = 1 TO roundcount
+DO
 	CLS
 
 	' reset and randomize player values
+	activeplayers = playercount
+       
 	FOR i = 1 TO playercount
 		player(i).deltax = 0
 		player(i).deltay = 0
 		player(i).gapcount = 0
 		player(i).gapcountdown = 0
 		player(i).linelength = 0
-		player(i).points = 0
        
 		player(i).active = 1
 		player(i).linecolor = i + 8
@@ -95,19 +98,19 @@ FOR roundcounter = 1 TO roundcount
 	LINE (FIELDOFFSETX, FIELDOFFSETY)-(FIELDOFFSETX + FIELDWIDTH, FIELDOFFSETY + FIELDHEIGHT), FIELDLINECOLOR, B
 	PAINT (FIELDOFFSETX + 1, FIELDOFFSETY + 1), FIELDCOLOR, FIELDLINECOLOR
 
-	' draw players for one second to show their position
-	FOR i = 1 TO playercount
-		'PSET (player(i).posx, player(i).posy), player(i).linecolor
-		CIRCLE (player(i).posx, player(i).posy), LINEWIDTH, player(i).linecolor
-	NEXT
-	SLEEP 1
-	FOR i = 1 TO playercount
-		'PSET (player(i).posx, player(i).posy), FIELDCOLOR
-		CIRCLE (player(i).posx, player(i).posy), LINEWIDTH, FIELDCOLOR
-	NEXT
-
 	' the game loop
 	DO
+		IF scoreupdate = 1 THEN
+			FOR k = 1 TO playercount
+				LOCATE 2 * k + 2, 66
+				COLOR player(k).linecolor
+				PRINT "Player"; k; ":"; player(k).points; " "
+				COLOR 15
+			NEXT
+			scoreupdate = 0
+		END IF
+
+
 		'Eric Carr's multi-key routine
 		'http://tek-tips.com/faqs.cfm?fid=4193
 T:
@@ -136,6 +139,11 @@ T:
 					IF POINT(player(i).posx + player(i).deltax, player(i).posy + player(i).deltay) <> FIELDCOLOR THEN
 					      player(i).active = 0
 					      activeplayers = activeplayers - 1
+					      FOR k = 1 TO playercount
+							IF player(k).active THEN player(k).points = player(k).points + 1
+							IF player(k).points = (playercount - 1) * 10 THEN gameend = 1
+					      NEXT
+					      scoreupdate = 1
 					ELSE
 					      ' still bugs with collision detection when CIRCLE is used
 					      ' the collision will just be detected with the CIRECLE center
@@ -153,8 +161,8 @@ T:
 		NEXT
 
 		delay (FRAMEDELAY)
-	LOOP UNTIL KS(1) = 1 OR activeplayers = 0 'end game loop
-	NEXT 'end round loop
+	LOOP UNTIL KS(1) = 1 OR activeplayers = 1 OR gameend = 1'end game loop
+LOOP UNTIL KS(1) OR gameend = 1'end round loop
 
 END
 

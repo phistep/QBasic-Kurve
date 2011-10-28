@@ -26,7 +26,7 @@ CONST ANGLEMODIFIER = 3
 CONST PXDISTMODIFIER = 1
 CONST GAPLENGTH = 20
 CONST GAPCHANCE = 20 ' * 1 / 10000
-CONST LINEWIDTH = 2 ' * 2     
+CONST LINEWIDTH = 2 ' * 2    
 CONST FRAMEDELAY = .04  ' float, in seconds, min is 0.04
 CONST NOSPAWNZONE = 75
 
@@ -48,7 +48,6 @@ TYPE plyr
 END TYPE
 
 ' player keycodes
-' reference: http://www.angelfire.com/scifi/nightcode/prglang/qbasic/function/devices/keyboard_scan_codes.html
 DIM keycodelist(6, 2) ' (# of player, leftkey | rightkey)
 keycodelist(1, 1) = 16 'Q
 keycodelist(1, 2) = 17 'W
@@ -64,91 +63,98 @@ keycodelist(6, 1) = 47 'V
 keycodelist(6, 2) = 48 'B
 
 playercount = 2 ' up to six
+roundcount = 2
 activeplayers = playercount
 
 DIM player(playercount) AS plyr
 
-FOR i = 1 TO playercount
-	player(i).deltax = 0
-	player(i).deltay = 0
-	player(i).gapcount = 0
-	player(i).gapcountdown = 0
-	player(i).linelength = 0
-	player(i).points = 0
-       
-	player(i).active = 1
-	player(i).linecolor = i + 8
-	player(i).leftkeycode = keycodelist(i, 1)
-	player(i).rightkeycode = keycodelist(i, 2)
+' the round loop
+FOR roundcounter = 1 TO roundcount
+	CLS
 
-	player(i).angle = (RND * 360) + 1
-	player(i).posx = (RND * (FIELDWIDTH - 2 * NOSPAWNZONE)) + FIELDOFFSETX + NOSPAWNZONE
-	player(i).posy = (RND * (FIELDHEIGHT - 2 * NOSPAWNZONE)) + FIELDOFFSETY + NOSPAWNZONE
-NEXT
-
-' draw gamefield
-LINE (FIELDOFFSETX, FIELDOFFSETY)-(FIELDOFFSETX + FIELDWIDTH, FIELDOFFSETY + FIELDHEIGHT), FIELDLINECOLOR, B
-PAINT (FIELDOFFSETX + 1, FIELDOFFSETY + 1), FIELDCOLOR, FIELDLINECOLOR
-
-' draw players for one second to show their position
-FOR i = 1 TO playercount
-	'PSET (player(i).posx, player(i).posy), player(i).linecolor
-	CIRCLE (player(i).posx, player(i).posy), LINEWIDTH, player(i).linecolor
-NEXT
-SLEEP 1
-FOR i = 1 TO playercount
-	'PSET (player(i).posx, player(i).posy), FIELDCOLOR
-	CIRCLE (player(i).posx, player(i).posy), LINEWIDTH, FIELDCOLOR
-NEXT
-
-
-DO
-	'Eric Carr's multi-key routine
-	'http://tek-tips.com/faqs.cfm?fid=4193
-T:
-j$ = INKEY$
-j = INP(&H60)
-OUT &H61, INP(&H61) OR &H61: OUT &H61, &H20
-KS(SC(j)) = DU(j)
-
+	' reset and randomize player values
 	FOR i = 1 TO playercount
-		IF player(i).active = 1 THEN
-			IF KS(player(i).leftkeycode) = 1 THEN player(i).angle = (player(i).angle - ANGLEMODIFIER) MOD 360
-			IF KS(player(i).rightkeycode) = 1 THEN player(i).angle = (player(i).angle + ANGLEMODIFIER) MOD 360
-		
-			player(i).deltax = COS(toRad(player(i).angle)) * PXDISTMODIFIER
-			player(i).deltay = SIN(toRad(player(i).angle)) * PXDISTMODIFIER
-			
-			player(i).posx = player(i).posx + player(i).deltax
-			player(i).posy = player(i).posy + player(i).deltay
-
-			IF (RND * 10000) + 1 <= GAPCHANCE THEN
-				player(i).gapcountdown = GAPLENGTH
-				player(i).gapcount = player(i).gapcount + 1
-			END IF
+		player(i).deltax = 0
+		player(i).deltay = 0
+		player(i).gapcount = 0
+		player(i).gapcountdown = 0
+		player(i).linelength = 0
+		player(i).points = 0
        
-			IF player(i).gapcountdown = 0 THEN
-				IF POINT(player(i).posx + player(i).deltax, player(i).posy + player(i).deltay) <> FIELDCOLOR THEN
-				      player(i).active = 0
-				      activeplayers = activeplayers - 1
-				ELSE
-				      ' still bugs with collision detection when CIRCLE is used
-				      ' the collision will just be detected with the CIRECLE center
+		player(i).active = 1
+		player(i).linecolor = i + 8
+		player(i).leftkeycode = keycodelist(i, 1)
+		player(i).rightkeycode = keycodelist(i, 2)
 
-				      'PSET (player(i).posx, player(i).posy), player(i).linecolor
-				      CIRCLE (player(i).posx - player(i).deltax * LINEWIDTH, player(i).posy - player(i).deltay * LINEWIDTH), LINEWIDTH, player(i).linecolor
-				END IF
-			ELSE
-				player(i).gapcountdown = player(i).gapcountdown - 1
-			END IF
-
-			player(i).linelength = player(i).linelength + 1
-		END IF
-		IF activeplayers = 0 THEN EXIT FOR
+		player(i).angle = (RND * 360) + 1
+		player(i).posx = (RND * (FIELDWIDTH - 2 * NOSPAWNZONE)) + FIELDOFFSETX + NOSPAWNZONE
+		player(i).posy = (RND * (FIELDHEIGHT - 2 * NOSPAWNZONE)) + FIELDOFFSETY + NOSPAWNZONE
 	NEXT
 
-	delay (FRAMEDELAY)
-LOOP UNTIL KS(1) = 1 OR activeplayers = 0
+	' draw gamefield
+	LINE (FIELDOFFSETX, FIELDOFFSETY)-(FIELDOFFSETX + FIELDWIDTH, FIELDOFFSETY + FIELDHEIGHT), FIELDLINECOLOR, B
+	PAINT (FIELDOFFSETX + 1, FIELDOFFSETY + 1), FIELDCOLOR, FIELDLINECOLOR
+
+	' draw players for one second to show their position
+	FOR i = 1 TO playercount
+		'PSET (player(i).posx, player(i).posy), player(i).linecolor
+		CIRCLE (player(i).posx, player(i).posy), LINEWIDTH, player(i).linecolor
+	NEXT
+	SLEEP 1
+	FOR i = 1 TO playercount
+		'PSET (player(i).posx, player(i).posy), FIELDCOLOR
+		CIRCLE (player(i).posx, player(i).posy), LINEWIDTH, FIELDCOLOR
+	NEXT
+
+	' the game loop
+	DO
+		'Eric Carr's multi-key routine
+		'http://tek-tips.com/faqs.cfm?fid=4193
+T:
+		j$ = INKEY$
+		j = INP(&H60)
+		OUT &H61, INP(&H61) OR &H61: OUT &H61, &H20
+		KS(SC(j)) = DU(j)
+
+		FOR i = 1 TO playercount
+			IF player(i).active = 1 THEN
+				IF KS(player(i).leftkeycode) = 1 THEN player(i).angle = (player(i).angle - ANGLEMODIFIER) MOD 360
+				IF KS(player(i).rightkeycode) = 1 THEN player(i).angle = (player(i).angle + ANGLEMODIFIER) MOD 360
+		
+				player(i).deltax = COS(toRad(player(i).angle)) * PXDISTMODIFIER
+				player(i).deltay = SIN(toRad(player(i).angle)) * PXDISTMODIFIER
+			
+				player(i).posx = player(i).posx + player(i).deltax
+				player(i).posy = player(i).posy + player(i).deltay
+
+				IF (RND * 10000) + 1 <= GAPCHANCE THEN
+					player(i).gapcountdown = GAPLENGTH
+					player(i).gapcount = player(i).gapcount + 1
+				END IF
+       
+				IF player(i).gapcountdown = 0 THEN
+					IF POINT(player(i).posx + player(i).deltax, player(i).posy + player(i).deltay) <> FIELDCOLOR THEN
+					      player(i).active = 0
+					      activeplayers = activeplayers - 1
+					ELSE
+					      ' still bugs with collision detection when CIRCLE is used
+					      ' the collision will just be detected with the CIRECLE center
+
+					      'PSET (player(i).posx, player(i).posy), player(i).linecolor
+					      CIRCLE (player(i).posx - player(i).deltax * LINEWIDTH, player(i).posy - player(i).deltay * LINEWIDTH), LINEWIDTH, player(i).linecolor
+					END IF
+				ELSE
+					player(i).gapcountdown = player(i).gapcountdown - 1
+				END IF
+
+				player(i).linelength = player(i).linelength + 1
+			END IF
+			IF activeplayers = 0 THEN EXIT FOR
+		NEXT
+
+		delay (FRAMEDELAY)
+	LOOP UNTIL KS(1) = 1 OR activeplayers = 0 'end game loop
+	NEXT 'end round loop
 
 END
 

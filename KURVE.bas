@@ -4,23 +4,14 @@ RANDOMIZE TIMER
 SCREEN 12
 CLS
 
-' typecast
-DIM posx AS DOUBLE
-DIM posy AS DOUBLE
-DIM deltax AS DOUBLE
-DIM deltay AS DOUBLE
-
-' setting vars to zero
-linelength = 0
-gapcount = 0
-deltax = 0
-deltay = 0
-gapcountdown = 0
-
-' start conditions
-posx = 300
-posy = 300
-angle = 180
+' arrays for keyboard routine
+DIM KS(255), SC(255), DU(255)
+FOR E = 0 TO 127
+	SC(E) = E: DU(E) = 1
+NEXT
+FOR E = 128 TO 255
+	SC(E) = E - 128: DU(E) = 0
+NEXT
 
 ' gamefield
 CONST FIELDOFFSETY = 80
@@ -32,81 +23,121 @@ CONST FIELDLINECOLOR = 15 ' must differ form FIELDCOLOR
 
 ' tunables
 CONST ANGLEMODIFIER = 5
-CONST LINECOLOR = 10 ' must differ from FIELDCOLOR
 CONST PXDISTMODIFIER = 1
 CONST GAPLENGTH = 20
 CONST GAPCHANCE = 20 ' * 1 / 10000
-CONST LINEWIDTH = 2 ' * 2        
+CONST LINEWIDTH = 2 ' * 2     
 CONST FRAMEDELAY = .04  ' float, in seconds, min is 0.04
 
-' keys
-CONST rightKey$ = "d"
-CONST leftKey$ = "a"
-CONST QUITKEY$ = "q"
+' defining the datastructure for a player
+TYPE plyr
+	posx AS DOUBLE
+	posy AS DOUBLE
+	deltax AS DOUBLE
+	deltay AS DOUBLE
+	angle AS SINGLE
+	gapcount  AS INTEGER
+	gapcountdown AS INTEGER
+	linelength AS INTEGER
+	linecolor AS INTEGER
+	leftkeycode AS INTEGER
+	rightkeycode AS INTEGER
+	points AS INTEGER
+	active AS INTEGER
+END TYPE
+
+playercount = 2
+activeplayers = playercount
+
+DIM player(playercount) AS plyr
+
+FOR i = 0 TO playercount
+	player(i).deltax = 0
+	player(i).deltay = 0
+	player(i).gapcount = 0
+	player(i).gapcountdown = 0
+	player(i).linelength = 0
+	player(i).points = 0
+	player(i).active = 1
+NEXT
+
+player(1).posx = 300
+player(1).posy = 300
+player(1).angle = 180
+player(1).linecolor = 10
+player(1).leftkeycode = 30
+player(1).rightkeycode = 32
+
+player(2).posx = 100
+player(2).posy = 100
+player(2).angle = 90
+player(2).linecolor = 12
+player(2).leftkeycode = 36
+player(2).rightkeycode = 38
 
 PRINT "ACHTUNG, DIE BASIC KURVE!"
-PRINT "Left:  "; leftKey$
-PRINT "Right: "; rightKey$
-PRINT "Quit:  "; QUITKEY$
 
 LINE (FIELDOFFSETX, FIELDOFFSETY)-(FIELDOFFSETX + FIELDWIDTH, FIELDOFFSETY + FIELDHEIGHT), FIELDLINECOLOR, B
 PAINT (FIELDOFFSETX + 1, FIELDOFFSETY + 1), FIELDCOLOR, FIELDLINECOLOR
 
 
 DO
-        userKey$ = INKEY$
-        IF userKey$ = leftKey$ THEN angle = (angle - ANGLEMODIFIER) MOD 360
-        IF userKey$ = rightKey$ THEN angle = (angle + ANGLEMODIFIER) MOD 360
+	'Eric Carr's multi-key routine
+	'http://tek-tips.com/faqs.cfm?fid=4193
+T:
+J$ = INKEY$
+J = INP(&H60)
+OUT &H61, INP(&H61) OR &H61: OUT &H61, &H20
+KS(SC(J)) = DU(J)
 
-        deltax = COS(toRad(angle)) * PXDISTMODIFIER
-        deltay = SIN(toRad(angle)) * PXDISTMODIFIER
-      
-        posx = posx + deltax
-        posy = posy + deltay
+	FOR i = 0 TO playercount
+		IF player(i).active = 1 THEN
+			IF KS(player(i).leftkeycode) = 1 THEN player(i).angle = (player(i).angle - ANGLEMODIFIER) MOD 360
+			IF KS(player(i).rightkeycode) = 1 THEN player(i).angle = (player(i).angle + ANGLEMODIFIER) MOD 360
+		
+			player(i).deltax = COS(toRad(player(i).angle)) * PXDISTMODIFIER
+			player(i).deltay = SIN(toRad(player(i).angle)) * PXDISTMODIFIER
+			
+			player(i).posx = player(i).posx + player(i).deltax
+			player(i).posy = player(i).posy + player(i).deltay
 
-        IF (RND * 10000) + 1 <= GAPCHANCE THEN
-                gapcountdown = GAPLENGTH
-                gapcount = gapcount + 1
-        END IF
+			IF (RND * 10000) + 1 <= GAPCHANCE THEN
+				player(i).gapcountdown = GAPLENGTH
+				player(i).gapcount = player(i).gapcount + 1
+			END IF
        
-        IF gapcountdown = 0 THEN
-                IF POINT(posx + deltax, posy + deltay) <> FIELDCOLOR THEN
-                        userKey$ = QUITKEY$
-                ELSE
-                        ' still bugs with collision detection when CIRCLE is used
-                        ' the collision will just be detected with the CIRECLE center
+			IF player(i).gapcountdown = 0 THEN
+				IF POINT(player(i).posx + player(i).deltax, player(i).posy + player(i).deltay) <> FIELDCOLOR THEN
+				      player(i).active = 0
+				      activeplayers = activeplayers - 1
+				      COLOR player(i).linecolor: PRINT "Player "; i; " lost!": COLOR 15
+				ELSE
+					' still bugs with collision detection when CIRCLE is used
+					' the collision will just be detected with the CIRECLE center
 
-                        'PSET (posx, posy), LINECOLOR
-                        CIRCLE (posx - deltax * LINEWIDTH, posy - deltay * LINEWIDTH), LINEWIDTH, LINECOLOR
-                END IF
-        ELSE
-                gapcountdown = gapcountdown - 1
-        END IF
+					'PSET (posx, posy), LINECOLOR
+					CIRCLE (player(i).posx - player(i).deltax * LINEWIDTH, player(i).posy - player(i).deltay * LINEWIDTH), LINEWIDTH, player(i).linecolor
+				END IF
+			ELSE
+				player(i).gapcountdown = player(i).gapcountdown - 1
+			END IF
 
-        linelength = linelength + 1
+			player(i).linelength = player(i).linelength + 1
+		END IF
+		IF activeplayers = 0 THEN EXIT FOR
+	NEXT
+		
+	delay (FRAMEDELAY)
+LOOP UNTIL KS(1) = 1 OR activeplayers = 0
 
-        delay (FRAMEDELAY)
-LOOP UNTIL userKey$ = QUITKEY$
-
-' debug info
-PRINT
-PRINT "STATS"
-PRINT "angle      "; angle
-PRINT "posx       "; posx
-PRINT "posy       "; posy
-PRINT "color      "; POINT(posx + deltax, posy + deltay)
-PRINT "linelength "; linelength
-PRINT "gapcount   "; gapcount
-
-SLEEP
 END
 
 SUB delay (duration!)
-        ' from www.techiwarehouse.com/cat/17/BASIC-Programming
-        CONST TICKS = 86400
-        tim = TIMER
-        DO
-        LOOP UNTIL (TIMER - tim + TICKS) - (INT((TIMER - tim + TICKS) / TICKS) * TICKS) > duration
+	' from www.techiwarehouse.com/cat/17/BASIC-Programming
+	CONST TICKS = 86400
+	tim = TIMER
+	DO
+	LOOP UNTIL (TIMER - tim + TICKS) - (INT((TIMER - tim + TICKS) / TICKS) * TICKS) > duration
 END SUB
 
 FUNCTION toRad (degrees)

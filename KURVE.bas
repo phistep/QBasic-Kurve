@@ -1,17 +1,17 @@
+DECLARE SUB setupTimer (frequency#)
+DECLARE SUB unSetupTimer ()
 DECLARE SUB delay (duration!)
 DECLARE FUNCTION toRad! (degrees!)
-RANDOMIZE TIMER
-SCREEN 12
-CLS
 
-' arrays for keyboard routine
-DIM KS(255), SC(255), DU(255)
-FOR E = 0 TO 127
-	SC(E) = E: DU(E) = 1
-NEXT
-FOR E = 128 TO 255
-	SC(E) = E - 128: DU(E) = 0
-NEXT
+' tunables
+CONST ANGLEMODIFIER = 3
+CONST PXDISTMODIFIER = 1
+CONST GAPLENGTH = 20
+CONST GAPCHANCE = 20 ' * 1 / 10000
+CONST LINEWIDTH = 2 ' * 2
+CONST FRAMEDELAY# = .008  ' in seconds
+CONST NOSPAWNZONE = 75
+CONST TIMERFREQ# = 1000 ' Hz
 
 ' gamefield
 CONST FIELDOFFSETY = 20
@@ -20,15 +20,6 @@ CONST FIELDWIDTH = 480
 CONST FIELDHEIGHT = 440
 CONST FIELDCOLOR = 0
 CONST FIELDLINECOLOR = 15 ' must differ from FIELDCOLOR
-
-' tunables
-CONST ANGLEMODIFIER = 3
-CONST PXDISTMODIFIER = 1
-CONST GAPLENGTH = 20
-CONST GAPCHANCE = 20 ' * 1 / 10000
-CONST LINEWIDTH = 2 ' * 2 
-CONST FRAMEDELAY = .04  ' float, in seconds, min is 0.04
-CONST NOSPAWNZONE = 75
 
 ' defining the datastructure for a player
 TYPE plyr
@@ -47,6 +38,15 @@ TYPE plyr
 	active AS INTEGER
 END TYPE
 
+' arrays for keyboard routine
+DIM KS(255), SC(255), DU(255)
+FOR E = 0 TO 127
+	SC(E) = E: DU(E) = 1
+NEXT
+FOR E = 128 TO 255
+	SC(E) = E - 128: DU(E) = 0
+NEXT
+
 ' player keycodes
 DIM keycodelist(6, 2) ' (# of player, leftkey | rightkey)
 keycodelist(1, 1) = 16 'Q
@@ -61,6 +61,12 @@ keycodelist(5, 1) = 36 'J
 keycodelist(5, 2) = 37 'K
 keycodelist(6, 1) = 47 'V
 keycodelist(6, 2) = 48 'B
+
+' setting up
+setupTimer (TIMERFREQ#)
+RANDOMIZE TIMER
+SCREEN 12
+CLS
 
 ' default
 playercount = 2
@@ -150,10 +156,10 @@ DO
 
 		' the game loop
 		DO
-
+			 time1# = TIMER
 			'Eric Carr's multi-key routine
 			'http://tek-tips.com/faqs.cfm?fid=4193
-T:
+'T:
 			j$ = INKEY$
 			j = INP(&H60)
 			OUT &H61, INP(&H61) OR &H61: OUT &H61, &H20
@@ -213,13 +219,27 @@ T:
 				scoreupdate = 0
 			END IF
 
+			time2# = TIMER
+		       
+			'delay
+			framedly# = FRAMEDELAY# - (time2# - time1#)
+			
+			LOCATE 1, 40: PRINT "FPS:"; 1 / framedly#
 
-			delay (FRAMEDELAY)
+			numTicks& = framedly# * TIMERFREQ#
+			FOR m& = 1 TO numTicks&
+				st# = TIMER
+				WHILE st# = TIMER: WEND
+			NEXT m&
+		      
 		LOOP UNTIL KS(1) = 1 OR activeplayers = 1 OR winner <> 0 'end game loop
 	LOOP UNTIL KS(1) = 1 OR winner <> 0 'end round loop
 	KS(1) = 0
 
 LOOP UNTIL 1 = 0 'end application loop
+
+' resetting and end
+unSetupTimer
 END
 
 SUB delay (duration!)
@@ -230,7 +250,20 @@ SUB delay (duration!)
 	LOOP UNTIL (TIMER - tim + TICKS) - (INT((TIMER - tim + TICKS) / TICKS) * TICKS) > duration
 END SUB
 
+SUB setupTimer (frequency#)
+ticksPerTimer& = 1193181# / frequency#
+OUT &H43, &H34
+OUT &H40, ticksPerTimer& AND 255
+OUT &H40, ticksPerTimer& \ 256
+END SUB
+
 FUNCTION toRad (degrees!)
 toRad = (degrees / 180) * ATN(1) * 4
 END FUNCTION
+
+SUB unSetupTimer
+OUT &H43, &H34
+OUT &H40, 0
+OUT &H40, 0
+END SUB
 

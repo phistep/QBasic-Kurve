@@ -26,7 +26,7 @@ CONST ANGLEMODIFIER = 3
 CONST PXDISTMODIFIER = 1
 CONST GAPLENGTH = 20
 CONST GAPCHANCE = 20 ' * 1 / 10000
-CONST LINEWIDTH = 2 ' * 2   
+CONST LINEWIDTH = 2 ' * 2 
 CONST FRAMEDELAY = .04  ' float, in seconds, min is 0.04
 CONST NOSPAWNZONE = 75
 
@@ -78,12 +78,13 @@ DO
 	LOCATE 9, 32: COLOR 11: PRINT "Player 3: ® O  P ¯"
 	LOCATE 11, 32: COLOR 12: PRINT "Player 4: ® S  D ¯"
 	LOCATE 13, 32: COLOR 13: PRINT "Player 5: ® J  K ¯"
-	LOCATE 15, 32: COLOR 14: PRINT "Player 5: ® V  B ¯"
+	LOCATE 15, 32: COLOR 14: PRINT "Player 6: ® V  B ¯"
        
 	COLOR 15
 	LOCATE 19, 33: PRINT "Press [2] - [6]"
 	LOCATE 22, 33: PRINT "[SPACE] to start"
 	LOCATE 28, 34: PRINT "[ESC] to quit"
+	LOCATE 18, 31: PRINT "Number of Players:"; playercount
 
 	IF winner <> 0 THEN
 		COLOR wincolor
@@ -102,7 +103,7 @@ DO
 			CASE "5": playercount = 5
 			CASE "6": playercount = 6
 		END SELECT
-		LOCATE 18, 31: PRINT "Number of Players:"; playercount
+		IF inp$ <> "" THEN LOCATE 18, 49: PRINT playercount
 	LOOP UNTIL playercount <> 0 AND (inp$ = " " OR inp$ = CHR$(27))
 	IF inp$ = CHR$(27) THEN EXIT DO
 	CLS
